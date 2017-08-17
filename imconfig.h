@@ -56,3 +56,6 @@ namespace ImGui
 }
 */
 
+// We were crashing in AddDrawListToRenderList() due to using more than 64k indices.
+// Workaround is to use 32-bit indices for now.
+#define ImDrawIdx uint32_t
