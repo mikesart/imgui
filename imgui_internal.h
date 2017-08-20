@@ -753,10 +753,10 @@ namespace ImGui
     IMGUI_API bool          IsPopupOpen(ImGuiID id);
 
     // New Columns API
-    IMGUI_API void          BeginColumns(const char* id, int count, ImGuiColumnsFlags flags = 0); // setup number of columns. use an identifier to distinguish multiple column sets. close with EndColumns().
-    IMGUI_API void          EndColumns();                                                         // close columns
+    IMGUI_API bool          BeginColumns(const char* id, int count, ImGuiColumnsFlags flags = 0); // setup number of columns. use an identifier to distinguish multiple column sets. close with EndColumns().
+    IMGUI_API bool          EndColumns();                                                         // close columns
     IMGUI_API void          PushColumnClipRect(int column_index = -1);
-
+    
     // NB: All position are in absolute pixels coordinates (never using window coordinates internally)
     // AVOID USING OUTSIDE OF IMGUI.CPP! NOT FOR PUBLIC CONSUMPTION. THOSE FUNCTIONS ARE A MESS. THEIR SIGNATURE AND BEHAVIOR WILL CHANGE, THEY NEED TO BE REFACTORED INTO SOMETHING DECENT.
     IMGUI_API void          RenderText(ImVec2 pos, const char* text, const char* text_end = NULL, bool hide_text_after_hash = true);

@@ -10083,7 +10083,7 @@ void ImGui::PushColumnClipRect(int column_index)
     PushClipRect(window->DC.ColumnsData[column_index].ClipRect.Min, window->DC.ColumnsData[column_index].ClipRect.Max, false);
 }
 
-void ImGui::BeginColumns(const char* id, int columns_count, ImGuiColumnsFlags flags)
+bool ImGui::BeginColumns(const char* id, int columns_count, ImGuiColumnsFlags flags)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
@@ -10112,6 +10112,9 @@ void ImGui::BeginColumns(const char* id, int columns_count, ImGuiColumnsFlags fl
     window->DC.ColumnsOffsetX = 0.0f;
     window->DC.CursorPos.x = (float)(int)(window->Pos.x + window->DC.IndentX + window->DC.ColumnsOffsetX);
 
+    // Assume this isn't the first time initialization call
+    bool inited = false;
+
     // Cache column offsets
     window->DC.ColumnsData.resize(columns_count + 1);
     for (int column_index = 0; column_index < columns_count + 1; column_index++)
@@ -10120,6 +10123,14 @@ void ImGui::BeginColumns(const char* id, int columns_count, ImGuiColumnsFlags fl
         KeepAliveID(column_id);
         const float default_t = column_index / (float)window->DC.ColumnsCount;
         float t = window->DC.StateStorage->GetFloat(column_id, default_t);
+
+        if ((column_index == 0) && (t == default_t) && !window->DC.StateStorage->GetVoidPtr(column_id))
+        {
+            // Return true if we're initializing this column for the first time ever.
+            inited = true;
+            window->DC.StateStorage->SetFloat(column_id, t);
+        }
+
         if (!(window->DC.ColumnsFlags & ImGuiColumnsFlags_NoForceWithinWindow))
             t = ImMin(t, PixelsToOffsetNorm(window, window->DC.ColumnsMaxX - g.Style.ColumnsMinSpacing * (window->DC.ColumnsCount - column_index)));
         window->DC.ColumnsData[column_index].OffsetNorm = t;
@@ -10137,9 +10148,11 @@ void ImGui::BeginColumns(const char* id, int columns_count, ImGuiColumnsFlags fl
     window->DrawList->ChannelsSplit(window->DC.ColumnsCount);
     PushColumnClipRect();
     PushItemWidth(GetColumnWidth() * 0.65f);
+
+    return inited;
 }
 
-void ImGui::EndColumns()
+bool ImGui::EndColumns()
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
@@ -10154,6 +10167,7 @@ void ImGui::EndColumns()
     window->DC.CursorMaxPos.x = ImMax(window->DC.ColumnsStartMaxPosX, window->DC.ColumnsMaxX);  // Columns don't grow parent
 
     // Draw columns borders and handle resize
+    bool resized = false;
     if (!(window->DC.ColumnsFlags & ImGuiColumnsFlags_NoBorder) && !window->SkipItems)
     {
         const float y1 = window->DC.ColumnsStartPosY;
@@ -10191,6 +10205,7 @@ void ImGui::EndColumns()
         {
             float x = GetDraggedColumnOffset(dragging_column);
             SetColumnOffset(dragging_column, x);
+            resized = true;
         }
     }
 
@@ -10201,6 +10216,8 @@ void ImGui::EndColumns()
     window->DC.ColumnsData.resize(0);
     window->DC.ColumnsOffsetX = 0.0f;
     window->DC.CursorPos.x = (float)(int)(window->Pos.x + window->DC.IndentX + window->DC.ColumnsOffsetX);
+
+    return resized;
 }
 
 // [2017/08: This is currently the only public API, while we are working on making BeginColumns/EndColumns user-facing]
