@@ -22,7 +22,7 @@
 //#define IMGUI_API __declspec( dllimport )
 
 //---- Don't define obsolete functions/enums names. Consider enabling from time to time after updating to avoid using soon-to-be obsolete function/names.
-//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
 //---- Don't implement demo windows functionality (ShowDemoWindow()/ShowStyleEditor()/ShowUserGuide() methods will be empty)
 //---- It is very strongly recommended to NOT disable the demo windows during development. Please read the comments in imgui_demo.cpp.
@@ -70,3 +70,24 @@ namespace ImGui
     void MyFunction(const char* name, const MyMatrix44& v);
 }
 */
+
+// Allow meshes with more than 64k indices (NB: probably a sign that we aren't clipping enough when using ImDrawList? but doesn't hurt/cost too much to have 32-bit indices anyway)
+#define ImDrawIdx unsigned int
+
+//$ TODO mikesart: quick hack to change text color until imgui gets official method.
+//    https://github.com/ocornut/imgui/issues/902
+#define IMGUI_TEXT_ESCAPE_SKIP()    \
+        if (c == '\033' && s[1] && s[2] && s[3] && s[4]) \
+        { \
+            s += 5; \
+            continue; \
+        }
+
+#define IMGUI_TEXT_ESCAPE_RENDER()  \
+        if (c == '\033' && s[1] && s[2] && s[3] && s[4]) \
+        { \
+            const unsigned char *us = (const unsigned char *)s; \
+            col = IM_COL32(us[1], us[2], us[3], us[4]); \
+            s += 5; \
+            continue; \
+        }
