@@ -21,6 +21,8 @@
 // - FreeType's memory allocator is not overridden.
 // - cfg.OversampleH, OversampleV are ignored (but perhaps not so necessary with this rasterizer).
 
+#ifdef USE_FREETYPE
+
 #include "imgui_freetype.h"
 #include "imgui_internal.h"   // ImMin,ImMax,ImFontAtlasBuild*,
 #include <stdint.h>
@@ -332,6 +334,7 @@ bool ImGuiFreeType::BuildFontAtlas(ImFontAtlas* atlas, unsigned int extra_flags)
         if (multiply_enabled)
             ImFontAtlasBuildMultiplyCalcLookupTable(multiply_table, cfg.RasterizerMultiply);
 
+        dst_font->FallbackGlyph = NULL; // Always clear fallback so FindGlyph can return NULL. It will be set again in BuildLookupTable()
         for (const ImWchar* in_range = cfg.GlyphRanges; in_range[0] && in_range[1]; in_range += 2) 
         {
             for (uint32_t codepoint = in_range[0]; codepoint <= in_range[1]; ++codepoint) 
@@ -379,3 +382,5 @@ bool ImGuiFreeType::BuildFontAtlas(ImFontAtlas* atlas, unsigned int extra_flags)
 
     return true;
 }
+
+#endif // USE_FREETYPE
